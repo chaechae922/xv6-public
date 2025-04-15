@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "spinlock.h"
 
+extern void (*schedule_thread_func)(void);
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -381,12 +383,18 @@ sched(void)
   mycpu()->intena = intena;
 }
 
-// Give up the CPU for one scheduling round.
-void
-yield(void)
+void yield(void)
 {
-  acquire(&ptable.lock);  //DOC: yieldlock
-  myproc()->state = RUNNABLE;
+  struct proc *p = myproc();
+  // 만약 사용자 스레드를 사용 중이면(PCB의 scheduler가 nonzero이면),
+  // 사용자 레벨 스케줄러 (즉, thread_schedule)를 호출.
+  if(p && p->scheduler != 0){
+    ((void (*)(void))(p->scheduler))();
+    return;
+  }
+  
+  acquire(&ptable.lock);
+  p->state = RUNNABLE;
   sched();
   release(&ptable.lock);
 }

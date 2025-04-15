@@ -181,6 +181,7 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
+	_uthread1\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -284,3 +285,7 @@ tar:
 	(cd /tmp; tar cf - xv6) | gzip >xv6-rev10.tar.gz  # the next one will be 10 (9/17)
 
 .PHONY: dist-test dist
+
+_uthread1: uthread1.o uthread_switch.o
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _uthread1 uthread1.o uthread_switch.o $(ULIB)
+	$(OBJDUMP) -S _uthread1 > uthread1.asm

@@ -7,6 +7,8 @@
 #include "mmu.h"
 #include "proc.h"
 
+void (*schedule_thread_func)(void);
+
 int
 sys_fork(void)
 {
@@ -88,4 +90,13 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+int sys_uthread_init(void) {
+  int addr;
+  if(argint(0, &addr) < 0)
+    return -1;
+  struct proc *p = myproc();
+  p->scheduler = addr;
+  return 0;
 }
